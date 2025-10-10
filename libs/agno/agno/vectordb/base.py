@@ -1,11 +1,30 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
-
+import uuid
+from agno.utils.string import generate_id
 
 class VectorDb(ABC):
     """Base class for Vector Databases"""
 
     from agno.knowledge.document import Document
+
+    def __init__(self, *, id: Optional[str] = None, name: Optional[str] = None, description: Optional[str] = None):
+        """Initialize base VectorDb.
+        
+        Args:
+            id: Optional custom ID. If not provided, an id will be generated.
+            name: Optional name for the vector database.
+            description: Optional description for the vector database.
+        """
+        if name is None:
+            from agno.utils.string import generate_id_from_name
+            name = generate_id_from_name(self.__class__.__name__)
+
+        self.name = name
+        self.description = description
+        # Last resort fallback to generate id from name if ID not specified
+        self.id = id if id else generate_id(name)
+
 
     @abstractmethod
     def create(self) -> None:
@@ -105,4 +124,8 @@ class VectorDb(ABC):
 
     @abstractmethod
     def delete_by_content_id(self, content_id: str) -> bool:
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_supported_search_types(self) -> List[str]:
         raise NotImplementedError
