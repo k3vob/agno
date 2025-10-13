@@ -150,27 +150,18 @@ class VectorSearchResult(BaseModel):
 class VectorSearchRequestSchema(BaseModel):
     """Schema for vector search request."""
 
+    class Meta(BaseModel):
+        """Inline metadata schema for pagination."""
+        limit: Optional[int] = Field(20, description="Number of results per page", ge=1, le=100)
+        page: Optional[int] = Field(1, description="Page number", ge=1)
+
     query: str = Field(..., description="The search query")
     db_id: Optional[str] = Field(None, description="The Content DB ID")
-    vector_db_id: Optional[str] = Field(None, description="The Vector DB ID")
+    vector_db_ids: Optional[List[str]] = Field(None, description="The Vector DB IDs ")
     search_type: Optional[str] = Field(None, description="The type of search to perform")
     max_results: Optional[int] = Field(None, description="The maximum number of results to return")
     filters: Optional[Dict[str, Any]] = Field(None, description="The filters to apply to the search")
-    limit: Optional[int] = Field(20, description="Number of results per page", ge=1, le=100)
-    page: Optional[int] = Field(1, description="Page number", ge=1)
-
-
-class VectorSearchResponseSchema(BaseModel):
-    """Schema for search results response."""
-
-    query: str
-    max_results: Optional[int] = None
-    filters: Optional[Dict[str, Any]] = None
-    search_type: Optional[str] = None
-    documents: List[VectorSearchResult]
-    total_results: int
-    search_time_ms: Optional[float] = None
-    vector_db_id: Optional[str] = None
+    meta: Optional[Meta] = Field(None, description="Pagination metadata")
 
 
 class ConfigResponseSchema(BaseModel):

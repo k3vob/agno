@@ -24,6 +24,7 @@ def mock_knowledge():
 
     # Mock external dependencies
     knowledge.vector_db = Mock()
+    knowledge.vector_db.id = "test_vector_db_id"  # Add ID for VectorDbSchema validation
     knowledge.contents_db = Mock()
     knowledge.readers = {}
 
@@ -390,25 +391,21 @@ class TestKnowledgeSearchEndpoint:
 
         mock_knowledge.search.return_value = mock_documents
 
-        response = test_app.get("/knowledge/search?query=Jordan Mitchell skills")
+        response = test_app.post("/knowledge/search", json={"query": "Jordan Mitchell skills"})
 
         assert response.status_code == 200
         data = response.json()
 
-        # Verify response structure
-        assert "query" in data
-        assert "documents" in data
-        assert "total_results" in data
-        assert "search_time_ms" in data
-
+        # Verify response structure - now using paginated format
+        assert "data" in data
+        assert "meta" in data
+        
         # Verify content
-        assert data["query"] == "Jordan Mitchell skills"
-        assert data["total_results"] == 2
-        assert len(data["documents"]) == 2
-        assert isinstance(data["search_time_ms"], float)
+        assert data["meta"]["total_count"] == 2
+        assert len(data["data"]) == 2
 
         # Verify document structure
-        doc = data["documents"][0]
+        doc = data["data"][0]
         assert doc["id"] == "doc_1"
         assert doc["content"] == "Jordan Mitchell is a software engineer with Python skills"
         assert doc["name"] == "cv_1"
@@ -416,7 +413,7 @@ class TestKnowledgeSearchEndpoint:
         assert doc["usage"] == {"total_tokens": 12}
 
         # Verify knowledge.search was called correctly
-        mock_knowledge.search.assert_called_once_with(query="Jordan Mitchell skills", search_type=None)
+        mock_knowledge.search.assert_called_once_with(query="Jordan Mitchell skills", max_results=200, filters=None, search_type=None)
 
     def test_search_knowledge_with_search_type(self, test_app, mock_knowledge):
         """Test search with specific search_type."""
@@ -430,17 +427,16 @@ class TestKnowledgeSearchEndpoint:
 
         mock_knowledge.search.return_value = mock_documents
 
-        response = test_app.get("/knowledge/search?query=test query&search_type=vector")
+        response = test_app.post("/knowledge/search", json={"query": "test query", "search_type": "vector"})
 
         assert response.status_code == 200
         data = response.json()
 
-        assert data["query"] == "test query"
-        assert data["total_results"] == 1
-        assert len(data["documents"]) == 1
+        assert data["meta"]["total_count"] == 1
+        assert len(data["data"]) == 1
 
         # Verify knowledge.search was called with search_type
-        mock_knowledge.search.assert_called_once_with(query="test query", search_type="vector")
+        mock_knowledge.search.assert_called_once_with(query="test query", max_results=200, filters=None, search_type="vector")
 
     def test_search_knowledge_with_db_id(self, test_app, mock_knowledge):
         """Test search with specific database ID."""
@@ -457,47 +453,43 @@ class TestKnowledgeSearchEndpoint:
 
         mock_knowledge.search.return_value = mock_documents
 
-        response = test_app.get("/knowledge/search?query=test&db_id=test_db")
+        response = test_app.post("/knowledge/search", json={"query": "test", "db_id": "test_db"})
 
         assert response.status_code == 200
         data = response.json()
 
-        assert data["query"] == "test"
-        assert data["total_results"] == 1
+        assert data["meta"]["total_count"] == 1
 
         # Note: db_id affects which knowledge instance is selected, not the search call itself
-        mock_knowledge.search.assert_called_once_with(query="test", search_type=None)
+        mock_knowledge.search.assert_called_once_with(query="test", max_results=200, filters=None, search_type=None)
 
     def test_search_knowledge_no_results(self, test_app, mock_knowledge):
         """Test search that returns no results."""
         mock_knowledge.search.return_value = []
 
-        response = test_app.get("/knowledge/search?query=nonexistent content")
+        response = test_app.post("/knowledge/search", json={"query": "nonexistent content"})
 
         assert response.status_code == 200
         data = response.json()
 
-        assert data["query"] == "nonexistent content"
-        assert data["total_results"] == 0
-        assert len(data["documents"]) == 0
-        assert isinstance(data["search_time_ms"], float)
+        assert data["meta"]["total_count"] == 0
+        assert len(data["data"]) == 0
 
     def test_search_knowledge_empty_query(self, test_app, mock_knowledge):
         """Test search with empty query."""
         mock_knowledge.search.return_value = []
 
-        response = test_app.get("/knowledge/search?query=")
+        response = test_app.post("/knowledge/search", json={"query": ""})
 
         assert response.status_code == 200
         data = response.json()
 
-        assert data["query"] == ""
-        assert data["total_results"] == 0
-        assert len(data["documents"]) == 0
+        assert data["meta"]["total_count"] == 0
+        assert len(data["data"]) == 0
 
     def test_search_knowledge_missing_query(self, test_app, mock_knowledge):
         """Test search without query parameter."""
-        response = test_app.get("/knowledge/search")
+        response = test_app.post("/knowledge/search", json={})
 
         # Should return 422 for missing required parameter
         assert response.status_code == 422
@@ -525,16 +517,15 @@ class TestKnowledgeSearchEndpoint:
 
         mock_knowledge.search.return_value = mock_documents
 
-        response = test_app.get("/knowledge/search?query=full test&search_type=hybrid&db_id=test_db")
+        response = test_app.post("/knowledge/search", json={"query": "full test", "search_type": "hybrid", "db_id": "test_db"})
 
         assert response.status_code == 200
         data = response.json()
 
-        assert data["query"] == "full test"
-        assert data["total_results"] == 1
+        assert data["meta"]["total_count"] == 1
 
         # Verify all document fields are properly serialized
-        doc = data["documents"][0]
+        doc = data["data"][0]
         assert doc["id"] == "doc_full"
         assert doc["content"] == "Full parameter test result"
         assert doc["name"] == "full_test"
@@ -545,7 +536,7 @@ class TestKnowledgeSearchEndpoint:
         assert doc["content_origin"] == "test_origin"
         assert doc["size"] == 100
 
-        mock_knowledge.search.assert_called_once_with(query="full test", search_type="hybrid")
+        mock_knowledge.search.assert_called_once_with(query="full test", max_results=200, filters=None, search_type="hybrid")
 
     def test_search_knowledge_timing(self, test_app, mock_knowledge):
         """Test that search timing is properly recorded."""
@@ -555,16 +546,15 @@ class TestKnowledgeSearchEndpoint:
 
         mock_knowledge.search.return_value = mock_documents
 
-        response = test_app.get("/knowledge/search?query=timing test")
+        response = test_app.post("/knowledge/search", json={"query": "timing test"})
 
         assert response.status_code == 200
         data = response.json()
 
-        # Verify timing field exists and is a reasonable value (should be very small for mocked search)
-        assert "search_time_ms" in data
-        assert isinstance(data["search_time_ms"], (int, float))
-        assert data["search_time_ms"] >= 0
-        assert data["search_time_ms"] < 1000  # Should be less than 1 second for a mocked call
+        # Verify basic response structure
+        assert "data" in data
+        assert "meta" in data
+        assert data["meta"]["total_count"] >= 0
 
     def test_search_knowledge_document_serialization(self, test_app, mock_knowledge):
         """Test that Document objects are properly serialized without numpy arrays."""
@@ -587,12 +577,12 @@ class TestKnowledgeSearchEndpoint:
 
         mock_knowledge.search.return_value = [mock_doc]
 
-        response = test_app.get("/knowledge/search?query=serialization test")
+        response = test_app.post("/knowledge/search", json={"query": "serialization test"})
 
         assert response.status_code == 200
         data = response.json()
 
-        doc = data["documents"][0]
+        doc = data["data"][0]
 
         # Verify included fields
         assert doc["id"] == "serialization_test"

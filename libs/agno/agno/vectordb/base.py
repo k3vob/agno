@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
+from agno.knowledge.document import Document
 
 from agno.utils.string import generate_id
 
@@ -7,7 +8,6 @@ from agno.utils.string import generate_id
 class VectorDb(ABC):
     """Base class for Vector Databases"""
 
-    from agno.knowledge.document import Document
 
     def __init__(self, *, id: Optional[str] = None, name: Optional[str] = None, description: Optional[str] = None):
         """Initialize base VectorDb.
@@ -18,9 +18,7 @@ class VectorDb(ABC):
             description: Optional description for the vector database.
         """
         if name is None:
-            from agno.utils.string import generate_id_from_name
-
-            name = generate_id_from_name(self.__class__.__name__)
+            name = self.__class__.__name__
 
         self.name = name
         self.description = description

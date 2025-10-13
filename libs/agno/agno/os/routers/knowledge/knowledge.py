@@ -556,17 +556,26 @@ def attach_routes(router: APIRouter, knowledge_instances: List[Knowledge]) -> AP
 
         knowledge = get_knowledge_instance_by_db_id(knowledge_instances, request.db_id)
 
-        # For now, validate the vector db id exists in the knowledge base
+        # For now, validate the vector db ids exist in the knowledge base
         # We will add more logic around this once we have multi vectordb support
-        # If no vector db id is provided, use the default vector db
-        if request.vector_db_id and knowledge.vector_db and knowledge.vector_db.id != request.vector_db_id:
-            raise HTTPException(
-                status_code=400, detail=f"Vector DB ID {request.vector_db_id} not found in knowledge base"
-            )
+        # If vector db ids are provided, check if any of them match the knowledge's vector db
+        if request.vector_db_ids:
+            if knowledge.vector_db and knowledge.vector_db.id:
+                if knowledge.vector_db.id not in request.vector_db_ids:
+                    raise HTTPException(
+                        status_code=400, 
+                        detail=f"None of the provided Vector DB IDs {request.vector_db_ids} match the knowledge base Vector DB ID {knowledge.vector_db.id}"
+                    )
+            else:
+                raise HTTPException(
+                    status_code=400, 
+                    detail="Knowledge base has no vector database configured"
+                )
 
         # Calculate pagination parameters
-        limit = request.limit or 20
-        page = request.page or 1
+        meta = request.meta
+        limit = meta.limit if meta else 20
+        page = meta.page if meta else 1
 
         # Use max_results if specified, otherwise use a higher limit for search then paginate
         search_limit = request.max_results or (limit * 10)  # Get more results to allow proper pagination
@@ -892,9 +901,10 @@ def attach_routes(router: APIRouter, knowledge_instances: List[Knowledge]) -> AP
         if knowledge.vector_db:
             search_types = knowledge.vector_db.get_supported_search_types()
             name = knowledge.vector_db.name or knowledge.vector_db.__class__.__name__
+            db_id = knowledge.vector_db.id
             vector_dbs.append(
                 VectorDbSchema(
-                    id=generate_id(name),
+                    id=db_id,
                     name=name,
                     description=knowledge.vector_db.description,
                     search_types=search_types,
