@@ -399,7 +399,7 @@ class TestKnowledgeSearchEndpoint:
         # Verify response structure - now using paginated format
         assert "data" in data
         assert "meta" in data
-        
+
         # Verify content
         assert data["meta"]["total_count"] == 2
         assert len(data["data"]) == 2
@@ -413,7 +413,9 @@ class TestKnowledgeSearchEndpoint:
         assert doc["usage"] == {"total_tokens": 12}
 
         # Verify knowledge.search was called correctly
-        mock_knowledge.search.assert_called_once_with(query="Jordan Mitchell skills", max_results=200, filters=None, search_type=None)
+        mock_knowledge.search.assert_called_once_with(
+            query="Jordan Mitchell skills", max_results=200, filters=None, search_type=None
+        )
 
     def test_search_knowledge_with_search_type(self, test_app, mock_knowledge):
         """Test search with specific search_type."""
@@ -436,7 +438,9 @@ class TestKnowledgeSearchEndpoint:
         assert len(data["data"]) == 1
 
         # Verify knowledge.search was called with search_type
-        mock_knowledge.search.assert_called_once_with(query="test query", max_results=200, filters=None, search_type="vector")
+        mock_knowledge.search.assert_called_once_with(
+            query="test query", max_results=200, filters=None, search_type="vector"
+        )
 
     def test_search_knowledge_with_db_id(self, test_app, mock_knowledge):
         """Test search with specific database ID."""
@@ -517,7 +521,9 @@ class TestKnowledgeSearchEndpoint:
 
         mock_knowledge.search.return_value = mock_documents
 
-        response = test_app.post("/knowledge/search", json={"query": "full test", "search_type": "hybrid", "db_id": "test_db"})
+        response = test_app.post(
+            "/knowledge/search", json={"query": "full test", "search_type": "hybrid", "db_id": "test_db"}
+        )
 
         assert response.status_code == 200
         data = response.json()
@@ -536,7 +542,9 @@ class TestKnowledgeSearchEndpoint:
         assert doc["content_origin"] == "test_origin"
         assert doc["size"] == 100
 
-        mock_knowledge.search.assert_called_once_with(query="full test", max_results=200, filters=None, search_type="hybrid")
+        mock_knowledge.search.assert_called_once_with(
+            query="full test", max_results=200, filters=None, search_type="hybrid"
+        )
 
     def test_search_knowledge_timing(self, test_app, mock_knowledge):
         """Test that search timing is properly recorded."""

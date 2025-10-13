@@ -1105,6 +1105,7 @@ class Knowledge:
 
     def _update_content(self, content: Content) -> Optional[Dict[str, Any]]:
         from agno.vectordb import VectorDb
+
         self.vector_db = cast(VectorDb, self.vector_db)
         if self.contents_db:
             if not content.id:
@@ -1538,6 +1539,7 @@ class Knowledge:
 
     def remove_content_by_id(self, content_id: str):
         from agno.vectordb import VectorDb
+
         self.vector_db = cast(VectorDb, self.vector_db)
         if self.vector_db is not None:
             if self.vector_db.__class__.__name__ == "LightRag":

@@ -152,6 +152,7 @@ class VectorSearchRequestSchema(BaseModel):
 
     class Meta(BaseModel):
         """Inline metadata schema for pagination."""
+
         limit: Optional[int] = Field(20, description="Number of results per page", ge=1, le=100)
         page: Optional[int] = Field(1, description="Page number", ge=1)
 

@@ -563,14 +563,11 @@ def attach_routes(router: APIRouter, knowledge_instances: List[Knowledge]) -> AP
             if knowledge.vector_db and knowledge.vector_db.id:
                 if knowledge.vector_db.id not in request.vector_db_ids:
                     raise HTTPException(
-                        status_code=400, 
-                        detail=f"None of the provided Vector DB IDs {request.vector_db_ids} match the knowledge base Vector DB ID {knowledge.vector_db.id}"
+                        status_code=400,
+                        detail=f"None of the provided Vector DB IDs {request.vector_db_ids} match the knowledge base Vector DB ID {knowledge.vector_db.id}",
                     )
             else:
-                raise HTTPException(
-                    status_code=400, 
-                    detail="Knowledge base has no vector database configured"
-                )
+                raise HTTPException(status_code=400, detail="Knowledge base has no vector database configured")
 
         # Calculate pagination parameters
         meta = request.meta
