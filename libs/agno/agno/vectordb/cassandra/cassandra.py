@@ -34,7 +34,7 @@ class Cassandra(VectorDb):
             log_info("Embedder not provided, using OpenAIEmbedder as default.")
         # Initialize base class with name and description
         super().__init__(name=name, description=description)
-        
+
         self.table_name: str = table_name
         self.embedder: Embedder = embedder
         self.session = session

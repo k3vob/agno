@@ -84,18 +84,19 @@ class MongoDb(VectorDb):
             raise ValueError("Collection name must not be empty.")
         if not database:
             raise ValueError("Database name must not be empty.")
-            
+
         # Dynamic ID generation based on unique identifiers
         if id is None:
             from agno.utils.string import generate_id
+
             connection_identifier = db_url or "mongodb://localhost:27017/"
             seed = f"{connection_identifier}#{database}#{collection_name}"
             id = generate_id(seed)
-            
+
         self.collection_name = collection_name
         # Initialize base class with name, description, and generated ID
         super().__init__(id=id, name=name, description=description)
-        
+
         self.database = database
         self.search_index_name = search_index_name
         self.cosmos_compatibility = cosmos_compatibility

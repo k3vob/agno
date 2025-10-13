@@ -67,10 +67,11 @@ class LanceDb(VectorDb):
         # Dynamic ID generation based on unique identifiers
         if id is None:
             from agno.utils.string import generate_id
+
             table_identifier = table_name or "default_table"
             seed = f"{uri}#{table_identifier}"
             id = generate_id(seed)
-            
+
         # Initialize base class with name, description, and generated ID
         super().__init__(id=id, name=name, description=description)
 

@@ -27,7 +27,7 @@ class LangChainVectorDb(VectorDb):
         self.vectorstore = vectorstore
         # Initialize base class with name and description
         super().__init__(name=name, description=description)
-        
+
         self.search_kwargs = search_kwargs
         self.knowledge_retriever = knowledge_retriever
 

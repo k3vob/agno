@@ -57,17 +57,18 @@ class UpstashVectorDb(VectorDb):
             raise ValueError("URL must be provided.")
         if not token:
             raise ValueError("Token must be provided.")
-            
+
         # Dynamic ID generation based on unique identifiers
         if id is None:
             from agno.utils.string import generate_id
+
             namespace_identifier = namespace or DEFAULT_NAMESPACE
             seed = f"{url}#{namespace_identifier}"
             id = generate_id(seed)
-            
+
         # Initialize base class with name, description, and generated ID
         super().__init__(id=id, name=name, description=description)
-        
+
         self._index: Optional[Index] = None
         self.url: str = url
         self.token: str = token

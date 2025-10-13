@@ -81,17 +81,18 @@ class Qdrant(VectorDb):
         # Validate required parameters
         if not collection:
             raise ValueError("Collection name must be provided.")
-            
-        # Dynamic ID generation based on unique identifiers  
+
+        # Dynamic ID generation based on unique identifiers
         if id is None:
             from agno.utils.string import generate_id
+
             host_identifier = host or location or url or "localhost"
             seed = f"{host_identifier}#{collection}"
             id = generate_id(seed)
-            
+
         # Initialize base class with name, description, and generated ID
         super().__init__(id=id, name=name, description=description)
-        
+
         # Collection attributes
         self.collection: str = collection
 

@@ -55,13 +55,14 @@ class Weaviate(VectorDb):
         # Dynamic ID generation based on unique identifiers
         if id is None:
             from agno.utils.string import generate_id
+
             connection_identifier = wcd_url or "local" if local else "default"
             seed = f"{connection_identifier}#{collection}"
             id = generate_id(seed)
-            
+
         # Initialize base class with name, description, and generated ID
         super().__init__(id=id, name=name, description=description)
-        
+
         # Connection setup
         self.wcd_url = wcd_url or getenv("WCD_URL")
         self.wcd_api_key = wcd_api_key or getenv("WCD_API_KEY")

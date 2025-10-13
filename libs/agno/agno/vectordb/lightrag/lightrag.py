@@ -28,7 +28,7 @@ class LightRag(VectorDb):
         self.api_key = api_key
         # Initialize base class with name and description
         super().__init__(name=name, description=description)
-        
+
         self.auth_header_name = auth_header_name
         self.auth_header_format = auth_header_format
 

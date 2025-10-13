@@ -68,8 +68,8 @@ class PineconeDb(VectorDb):
         self,
         dimension: int,
         spec: Union[Dict, ServerlessSpec, PodSpec],
-        name: Optional[str]=None,
-        description: Optional[str]=None,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
         id: Optional[str] = None,
         embedder: Optional[Embedder] = None,
         metric: Optional[str] = "cosine",
@@ -91,17 +91,18 @@ class PineconeDb(VectorDb):
             raise ValueError("Dimension must be provided and greater than 0.")
         if spec is None:
             raise ValueError("Spec must be provided for Pinecone index.")
-        
+
         # Dynamic ID generation based on unique identifiers
         if id is None:
             from agno.utils.string import generate_id
+
             index_name = name or "default_index"
             seed = f"{host or 'pinecone'}#{index_name}#{dimension}"
             id = generate_id(seed)
-            
+
         # Initialize base class with name, description, and generated ID
         super().__init__(id=id, name=name, description=description)
-        
+
         self._client = None
         self._index = None
         self.api_key: Optional[str] = api_key

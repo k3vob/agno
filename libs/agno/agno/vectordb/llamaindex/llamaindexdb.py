@@ -28,7 +28,7 @@ class LlamaIndexVectorDb(VectorDb):
         super().__init__(**kwargs)
         # Initialize base class with name and description
         super().__init__(name=name, description=description)
-        
+
         self.knowledge_retriever = knowledge_retriever
         self.loader = loader
 

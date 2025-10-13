@@ -102,7 +102,7 @@ class CouchbaseSearch(VectorDb):
         self.wait_until_index_ready = wait_until_index_ready
         # Initialize base class with name and description
         super().__init__(name=name, description=description)
-        
+
         self.kwargs = kwargs
         self.batch_limit = batch_limit
         if isinstance(search_index, str):

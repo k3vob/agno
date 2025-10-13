@@ -1,7 +1,7 @@
 import json
 import logging
 import math
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Path, Query, UploadFile
 
@@ -18,11 +18,10 @@ from agno.os.routers.knowledge.schemas import (
     ContentStatus,
     ContentStatusResponse,
     ContentUpdateSchema,
-    VectorSearchResult,
     ReaderSchema,
-    VectorSearchRequestSchema,
-    VectorSearchResponseSchema,
     VectorDbSchema,
+    VectorSearchRequestSchema,
+    VectorSearchResult,
 )
 from agno.os.schema import (
     BadRequestResponse,
@@ -541,12 +540,7 @@ def attach_routes(router: APIRouter, knowledge_instances: List[Knowledge]) -> AP
                                     "content_id": "content_456",
                                 }
                             ],
-                            "meta": {
-                                "page": 1,
-                                "limit": 20,
-                                "total_pages": 2,
-                                "total_count": 35
-                            }
+                            "meta": {"page": 1, "limit": 20, "total_pages": 2, "total_count": 35},
                         }
                     }
                 },
@@ -559,43 +553,42 @@ def attach_routes(router: APIRouter, knowledge_instances: List[Knowledge]) -> AP
         import time
 
         start_time = time.time()
-        
+
         knowledge = get_knowledge_instance_by_db_id(knowledge_instances, request.db_id)
-        
+
         # For now, validate the vector db id exists in the knowledge base
         # We will add more logic around this once we have multi vectordb support
         # If no vector db id is provided, use the default vector db
-        if request.vector_db_id and request.vector_db_id not in knowledge.vector_db.id:
-            raise HTTPException(status_code=400, detail=f"Vector DB ID {request.vector_db_id} not found in knowledge base")
+        if request.vector_db_id and knowledge.vector_db and knowledge.vector_db.id != request.vector_db_id:
+            raise HTTPException(
+                status_code=400, detail=f"Vector DB ID {request.vector_db_id} not found in knowledge base"
+            )
 
         # Calculate pagination parameters
         limit = request.limit or 20
         page = request.page or 1
-        
+
         # Use max_results if specified, otherwise use a higher limit for search then paginate
         search_limit = request.max_results or (limit * 10)  # Get more results to allow proper pagination
-        
+
         results = knowledge.search(
-            query=request.query, 
-            max_results=search_limit, 
-            filters=request.filters, 
-            search_type=request.search_type
+            query=request.query, max_results=search_limit, filters=request.filters, search_type=request.search_type
         )
-        
+
         # Calculate pagination
         total_results = len(results)
         start_idx = (page - 1) * limit
         end_idx = start_idx + limit
         paginated_results = results[start_idx:end_idx]
-        
+
         search_time_ms = (time.time() - start_time) * 1000
 
         # Convert Document objects to serializable format
         document_results = [VectorSearchResult.from_document(doc) for doc in paginated_results]
-        
+
         # Calculate pagination info
         total_pages = (total_results + limit - 1) // limit  # Ceiling division
-        
+
         return PaginatedResponse(
             data=document_results,
             meta=PaginationInfo(
@@ -603,7 +596,8 @@ def attach_routes(router: APIRouter, knowledge_instances: List[Knowledge]) -> AP
                 limit=limit,
                 total_pages=total_pages,
                 total_count=total_results,
-            )
+                search_time_ms=search_time_ms,
+            ),
         )
 
     @router.get(

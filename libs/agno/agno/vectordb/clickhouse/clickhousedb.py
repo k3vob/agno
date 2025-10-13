@@ -45,7 +45,7 @@ class Clickhouse(VectorDb):
         self.dsn = dsn
         # Initialize base class with name and description
         super().__init__(name=name, description=description)
-        
+
         self.compress = compress
         self.database_name = database_name
         if not client:

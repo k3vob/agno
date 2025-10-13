@@ -128,13 +128,14 @@ class SurrealDb(VectorDb):
         # Dynamic ID generation based on unique identifiers
         if id is None:
             from agno.utils.string import generate_id
+
             client_info = str(client) if client else str(async_client) if async_client else "default"
             seed = f"{client_info}#{collection}"
             id = generate_id(seed)
-            
+
         # Initialize base class with name, description, and generated ID
         super().__init__(id=id, name=name, description=description)
-        
+
         # Embedder for embedding the document contents
         if embedder is None:
             from agno.knowledge.embedder.openai import OpenAIEmbedder
