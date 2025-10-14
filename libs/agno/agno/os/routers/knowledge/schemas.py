@@ -157,12 +157,12 @@ class VectorSearchRequestSchema(BaseModel):
         page: Optional[int] = Field(1, description="Page number", ge=1)
 
     query: str = Field(..., description="The search query")
-    db_id: Optional[str] = Field(None, description="The Content DB ID")
-    vector_db_ids: Optional[List[str]] = Field(None, description="The Vector DB IDs ")
+    db_id: Optional[str] = Field(None, description="The content database id")
+    vector_db_ids: Optional[List[str]] = Field(None, description="List of vector database ids to search in")
     search_type: Optional[str] = Field(None, description="The type of search to perform")
     max_results: Optional[int] = Field(None, description="The maximum number of results to return")
     filters: Optional[Dict[str, Any]] = Field(None, description="The filters to apply to the search")
-    meta: Optional[Meta] = Field(None, description="Pagination metadata")
+    meta: Optional[Meta] = Field(None, description="Pagination metadata. Limit and page number to return a subset of results.")
 
 
 class ConfigResponseSchema(BaseModel):
